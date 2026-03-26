@@ -1,4 +1,4 @@
-﻿import { ExponentialCost, FreeCost, LinearCost, StepwiseCost } from "./api/Costs";
+﻿import { ExponentialCost, FirstFreeCost, FreeCost, LinearCost, StepwiseCost } from "./api/Costs";
 import { Localization } from "./api/Localization";
 import { BigNumber } from "./api/BigNumber";
 import { theory } from "./api/Theory";
@@ -34,9 +34,9 @@ var init = () => {
 
     // m
     {
-        let getDesc = (level) => "M=2^{" + level + "}";
-        M = theory.createUpgrade(1, currency, new ExponentialCost(5, 2));
-        M.getDescription = (_) => Utils.getMath(getDesc(M.level));
+        let getDesc = (level) => "M=" + BigNumber.TWO.pow(level).toString(0);
+        M = theory.createUpgrade(1, currency, new ExponentialCost(5, Math.log2(2)));
+        M.getDescription = (amount) => Utils.getMath(getDesc(M.level));
         M.getInfo = (amount) => Utils.getMathTo(getDesc(M.level), getDesc(M.level + amount));
     }
     /////////////////////   
@@ -84,7 +84,7 @@ var updateAvailability = () => {
 var tick = (elapsedTime, multiplier) => {
     let dt = BigNumber.from(elapsedTime * multiplier);
     let bonus = theory.publicationMultiplier;
-    currency.value += dt * bonus * getr(M.level).pow(getrExponent(MExp.level)) * getM(c.level).pow(getMExponent(cExp.level));
+    currency.value += dt * bonus * (getr(M.level).pow(getrExponent(MExp.level))+1) * getM(c.level).pow(getMExponent(cExp.level));
     let t = dt;
 }
 
@@ -106,8 +106,8 @@ var getPrimaryEquation = () => {
 
 var getSecondaryEquation = () => theory.latexSymbol + "=\\max\\rho";
 var getTertiaryEquation = () => "\\dot{\\rho} = E";
-var getQuaternaryEquation = () => t;
 var getPublicationMultiplierFormula = (symbol) => "\\frac{{" + symbol + "}^{2}}{3}";
+var getPublicationMultiplier = (tau) => tau.pow(0.3);
 var getTau = () => currency.value.pow(0.8);
 var get2DGraphValue = () => currency.value.sign * (BigNumber.ONE + currency.value.abs()).log10().toNumber();
 
